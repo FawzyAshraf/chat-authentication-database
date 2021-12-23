@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>chat app</title>
+  </head>
+  <body>
+    <div>
+      <h1 id="welcome"></h1>
+      <butthon id="logout" type="submit" style="background-color: red;">logout</butthon>
+      <form action="/prev" method="post">
+        <button id="prev">show previous messages</button>
+      </form>
+    </div>
+    <form id="form" action=""">
+      <h3>Enter your message</h3>
+      <input type="text" id="input"/>
+      <button>Send</button>
+    </form>
+    <div id="messages"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    var socket = io();
+    
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+    var messages = document.getElementById('messages');
+    var username = document.cookie.substring(9);
+    document.getElementById('welcome').innerHTML = 'Welcome ' + username;
+
+    (()=>{
+
+      socket.on('getPrev', prevMessages=>{
+        if (prevMessages){
+        prevMessages.forEach(msg=>{
+          var item = document.createElement('p');
+          item.innerText = msg;
+          messages.appendChild(item);
+        })}
+      })
+    })();
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+            socket.emit('chat message', input.value, username);
+            input.value = '';
+        }
+      });
+
+      socket.on('chat message', function(msg) {
+            var item = document.createElement('p');
+            item.textContent = msg;
+            messages.appendChild(item);
+      });
+
+      document.getElementById('logout').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        window.location.href = '/';
+      });
+    </script>
+  </body>
+</html>
